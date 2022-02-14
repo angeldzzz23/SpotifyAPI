@@ -490,6 +490,7 @@ extension FavSingersViewController: UICollectionViewDelegateFlowLayout {
 
 
 // TODO: refactor
+
 extension FavSingersViewController: UICollectionViewDelegate {
     // TODO 9: provide selection functionality
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
@@ -497,15 +498,13 @@ extension FavSingersViewController: UICollectionViewDelegate {
         if collectionView == singersGridCollectionView  {
             // check if it has existed and do not add if it hasnt existed.
         
+            // checks if the current favorite artists is less than five
             if currentFavoriteArtists.count < 5  {
-               
+                
                 if filteredSingers.isEmpty {
                     
-                    if !currentFavoriteArtists.contains(where: {$0.name == people[indexPath.row].name})  {
-                        
-                        let p = people[indexPath.row]
-                        
-                        print(p.name)
+                    if !currentFavoriteArtists.contains(where: {$0 == people[indexPath.row]})  {
+                    
                         currentFavoriteArtists.append( people[indexPath.row])
                             
                         fetchRelatedArtists(artistId: people[indexPath.row].id)
@@ -513,10 +512,9 @@ extension FavSingersViewController: UICollectionViewDelegate {
                     
                    
                 } else {
-                    
-                    if !currentFavoriteArtists.contains(where: {$0.name == filteredSingers[indexPath.row].name})  {
-                        let p = filteredSingers[indexPath.row]
-                        print(p.name)
+
+                    if !currentFavoriteArtists.contains(where: {$0 == filteredSingers[indexPath.row]})  {
+                        
                         currentFavoriteArtists.append(filteredSingers[indexPath.row])
                     }
    
