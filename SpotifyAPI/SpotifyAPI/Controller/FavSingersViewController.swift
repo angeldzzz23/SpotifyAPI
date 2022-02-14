@@ -11,22 +11,25 @@ import UIKit
 
 class FavSingersViewController: UIViewController,FavArtDelegate {
     
-    let token = "BQA5tLMdqFAdFlaXsbYP-y4Hp3ShTvC0VzO5nUysgmGb5twrwzozZumXruSVmLrQmEj_zuWHDGTuSTK1f8Q"
+
     
     private var singersGridCollectionView: UICollectionView! // the collection that displays people
     private var pickedArtistsCollectionView: UICollectionView! // the collection that includes the artists that have been picked
     private var favoriteGenresLbl: UILabel = UILabel() // the filter label that describes the collection
     
+    
+    // MARK: - properties
     var searching = false // this tells us if the search bar is being used
-    var  arti: [Artist] = []
     
     // the artists the user has chosen
-    var values = [Artist]()
+    // this is initialized whenever the user clicks on a singersGridCollectionView
+    var currentFavoriteArtists = [Artist]()
 
     // when searching for an artist this is shown
     var filteredSingers = [Artist]()
     
-    
+    // the fav marets
+    private var people: [Artist] = [] // people sorted by filters
     
     fileprivate let emailTextField: UITextField = {
         let tf = CustomTextfield(padding: 16, height: 50)
@@ -38,7 +41,7 @@ class FavSingersViewController: UIViewController,FavArtDelegate {
     
     
     
-    private var people: [Artist] = [] // people sorted by filters
+   
     
     // Constants for the filter collection view
     private let peopleCellReuseIdentifier = "peopleCellReuseIdentifier"
@@ -46,6 +49,8 @@ class FavSingersViewController: UIViewController,FavArtDelegate {
 
     private let artistController = SpotifyArtistController()
 
+    
+    
     fileprivate let gestureView = UIView()
 
     let favArtists = ["790FomKkXshlbRYZFtlgla","4obzFoKoKRHIphyHzJ35G3,0XwVARXT135rw8lyw1EeWP,1uNFoZAHBGtllmzznpCI3s",
@@ -155,7 +160,7 @@ class FavSingersViewController: UIViewController,FavArtDelegate {
     // configures
     //
     func configure(cell: FavArtistCollectionViewCell, forItemPathAt indexpath: IndexPath) {
-        let art = values[indexpath.item]
+        let art = currentFavoriteArtists[indexpath.item]
         // sets the name of the artist
         cell.conf(str: art.name)
         
@@ -204,7 +209,7 @@ class FavSingersViewController: UIViewController,FavArtDelegate {
     
     /// deals with the next button being pressed
     @objc fileprivate func nextButtonWasPressed() {
-        if values.count == 5 {
+        if currentFavoriteArtists.count == 5 {
         }
         
     }
@@ -342,7 +347,7 @@ class FavSingersViewController: UIViewController,FavArtDelegate {
         // TODO:
         if let indexpath = pickedArtistsCollectionView.indexPath(for: cell) {
             // delete photo from data source
-            values.remove(at: indexpath.item)
+            currentFavoriteArtists.remove(at: indexpath.item)
             
             //
             pickedArtistsCollectionView.deleteItems(at: [indexpath])
@@ -406,7 +411,7 @@ extension FavSingersViewController: UICollectionViewDataSource {
             }
             return people.count
         } else {
-            return values.count
+            return currentFavoriteArtists.count
         }
         
 
@@ -492,16 +497,16 @@ extension FavSingersViewController: UICollectionViewDelegate {
         if collectionView == singersGridCollectionView  {
             // check if it has existed and do not add if it hasnt existed.
         
-            if values.count < 5  {
+            if currentFavoriteArtists.count < 5  {
                
                 if filteredSingers.isEmpty {
                     
-                    if !values.contains(where: {$0.name == people[indexPath.row].name})  {
+                    if !currentFavoriteArtists.contains(where: {$0.name == people[indexPath.row].name})  {
                         
                         let p = people[indexPath.row]
                         
                         print(p.name)
-                        values.append( people[indexPath.row])
+                        currentFavoriteArtists.append( people[indexPath.row])
                             
                         fetchRelatedArtists(artistId: people[indexPath.row].id)
                     }
@@ -509,10 +514,10 @@ extension FavSingersViewController: UICollectionViewDelegate {
                    
                 } else {
                     
-                    if !values.contains(where: {$0.name == filteredSingers[indexPath.row].name})  {
+                    if !currentFavoriteArtists.contains(where: {$0.name == filteredSingers[indexPath.row].name})  {
                         let p = filteredSingers[indexPath.row]
                         print(p.name)
-                        values.append(filteredSingers[indexPath.row])
+                        currentFavoriteArtists.append(filteredSingers[indexPath.row])
                     }
    
                 }
