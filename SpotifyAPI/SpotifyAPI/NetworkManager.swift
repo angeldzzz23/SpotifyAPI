@@ -16,6 +16,8 @@ enum StoreItemError: Error, LocalizedError {
 }
 
 
+
+
 // this is the network manager for the Spotify API
 struct NetworkManager
 {
@@ -24,68 +26,66 @@ struct NetworkManager
     
     
     // getting artists using ids
-    static func getArtists(with ids: [String],and token: String, completion: @escaping (ArtistItem?) -> Void) {
-
-        let combined = ids.joined(separator: ",")
-        
-        guard var url2 = URLComponents(string: "https://api.spotify.com/v1/artists") else {return}
-        
-        let queryItems = [URLQueryItem(name: "ids", value: combined)]
-
-        url2.queryItems = queryItems
-     
-
-
-        // creating the request
-        var request = URLRequest(url: url2.url!)
-        request.httpMethod = "GET"
-        request.addValue("application/json", forHTTPHeaderField: "Accept")
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-   
-
-        // doing the URL Request
-        URLSession.shared.dataTask(with: request) { data, response, err in
-            guard err == nil else {
-                print("error: ", err!)
-                return
-            }
-            
-            guard  let response = response as? HTTPURLResponse else {
-                    print("no response")
-                return
-            }
-            
-            guard response.statusCode == 200 else {
-                print("BAD RESPONSE: ", response.statusCode)
-                return
-            }
-            
-            guard let data = data else {
-                print("no data ")
-                return
-            }
-            
-            do {
-                let decoder = JSONDecoder()
-                decoder.keyDecodingStrategy = .convertFromSnakeCase
-                let artist = try decoder.decode(ArtistItem.self, from: data)
-                completion(artist)
-            }
-            catch {
-                print("catch: ", error)
-            }
-          
-        }.resume()
-        
-    }
+//    static func getArtists(with ids: [String],and token: String, completion: @escaping (ArtistItem?) -> Void) {
+//
+//        let combined = ids.joined(separator: ",")
+//
+//        guard var url2 = URLComponents(string: "https://api.spotify.com/v1/artists") else {return}
+//
+//        let queryItems = [URLQueryItem(name: "ids", value: combined)]
+//
+//        url2.queryItems = queryItems
+//
+//
+//
+//        // creating the request
+//        var request = URLRequest(url: url2.url!)
+//        request.httpMethod = "GET"
+//        request.addValue("application/json", forHTTPHeaderField: "Accept")
+//        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+//        request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+//
+//
+//        // doing the URL Request
+//        URLSession.shared.dataTask(with: request) { data, response, err in
+//            guard err == nil else {
+//                print("error: ", err!)
+//                return
+//            }
+//
+//            guard  let response = response as? HTTPURLResponse else {
+//                    print("no response")
+//                return
+//            }
+//
+//            guard response.statusCode == 200 else {
+//                print("BAD RESPONSE: ", response.statusCode)
+//                return
+//            }
+//
+//            guard let data = data else {
+//                print("no data ")
+//                return
+//            }
+//
+//            do {
+//                let decoder = JSONDecoder()
+//                decoder.keyDecodingStrategy = .convertFromSnakeCase
+//                let artist = try decoder.decode(ArtistItem.self, from: data)
+//                completion(artist)
+//            }
+//            catch {
+//                print("catch: ", error)
+//            }
+//
+//        }.resume()
+//
+//    }
     
     
-    
-    
-    
-    // dowloanding an image
+
     // fetching the image
+    
     static func fetchImage(from url: URL) async throws -> UIImage {
         var urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: true)
         urlComponents?.scheme = "https"
@@ -155,7 +155,7 @@ struct NetworkManager
     }
     
     // TODO: Searching artist
-   static func search(searchingString: String, token: String, completion: @escaping (Search?) -> Void) {
+    func search(searchingString: String, token: String, completion: @escaping (Search?) -> Void) {
         
         // setting up the url
         guard var url2 = URLComponents(string: "https://api.spotify.com/v1/search") else {return}

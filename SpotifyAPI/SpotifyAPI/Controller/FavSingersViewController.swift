@@ -7,15 +7,6 @@
 
 import UIKit
 
-// the
-class Singer {
-    var singer: String
-    var imageURL: String
-    init(singer: String, imageURL: String) {
-        self.singer = singer
-        self.imageURL = imageURL
-    }
-}
 
 
 class FavSingersViewController: UIViewController,FavArtDelegate {
@@ -36,7 +27,7 @@ class FavSingersViewController: UIViewController,FavArtDelegate {
     var filteredSingers = [Artist]()
     
     
-    // data
+    
     fileprivate let emailTextField: UITextField = {
         let tf = CustomTextfield(padding: 16, height: 50)
         tf.placeholder = "enter name"
@@ -53,16 +44,21 @@ class FavSingersViewController: UIViewController,FavArtDelegate {
     private let peopleCellReuseIdentifier = "peopleCellReuseIdentifier"
     private let pickedArtistsReuseIdentifier = "colorCellReuseIdentifier"
 
+    private let artistController = SpotifyArtistController()
 
     fileprivate let gestureView = UIView()
 
+    let favArtists = ["790FomKkXshlbRYZFtlgla","4obzFoKoKRHIphyHzJ35G3,0XwVARXT135rw8lyw1EeWP,1uNFoZAHBGtllmzznpCI3s",
+                      "6qqNVTkY8uBg9cP3Jd7DAH","2C6i0I5RiGzDKN9IAF8reh", "60d24wfXkVzDSfLS6hyCjZ", "76YIoWHp3Ri3q1ocOPtFzp", "1vCWHaC5f2uS3yhpwWbIA6", "5K4W6rqBFWDnAN6FQUkS6x"
+    
+    ]
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
         // Do any additional setup after loading the view.
 
-        
         
         navigationItem.hidesBackButton = true
 
@@ -74,67 +70,53 @@ class FavSingersViewController: UIViewController,FavArtDelegate {
         
         setUpLayout()
        
+        // this fetches the artists we start off with
+        fetchHomeArtists()
+       
+    }
+    
+
+    // this fetches all of the artists
+    fileprivate func fetchHomeArtists() {
         
-        let favArtists = ["790FomKkXshlbRYZFtlgla","4obzFoKoKRHIphyHzJ35G3,0XwVARXT135rw8lyw1EeWP,1uNFoZAHBGtllmzznpCI3s",
-                          "6qqNVTkY8uBg9cP3Jd7DAH","2C6i0I5RiGzDKN9IAF8reh", "60d24wfXkVzDSfLS6hyCjZ", "76YIoWHp3Ri3q1ocOPtFzp", "1vCWHaC5f2uS3yhpwWbIA6", "5K4W6rqBFWDnAN6FQUkS6x"
-        
-        ]
-        
-        // fetches all of the users
-        Task {
-            do {
-                // fetch user data
-                NetworkManager.getArtists(with: favArtists, and: token) { artist in
-                 
-                    DispatchQueue.main.async {
-                        if let artist = artist {
-                            self.people = artist.artists
-                            self.singersGridCollectionView.reloadData()
-                            self.filteredSingers = []
-                      }
-                    }
+        artistController.getArtists(with: favArtists) { result in
+            switch result {
+            case .success(let items):
+                DispatchQueue.main.async {
+                    if let artist = items {
+                        self.people = artist.artists
+                        self.singersGridCollectionView.reloadData()
+                        self.filteredSingers = []
+                  }
                 }
-                // TODO:
-            } catch {
-                print("error")
+            case .failure(let error):
+                // otherwise, print an error to the console
                 print(error)
             }
         }
-        
-        
-      
-        
-        
-        
     }
     
     
 
+    
     func fetchRelatedArtists(artistId: String) {
-        // let id
         
-        
-        do {
-            NetworkManager.getRelatedArtist(token: token, artistId: artistId) { artist in
-                
-               
+        artistController.getRelatedArtistss(artistId: artistId) { result in
+            switch result {
+            case .success(let items):
                 DispatchQueue.main.async {
-                    if let artist = artist {
+                    if let artist = items {
                         self.people = artist.artists
                         self.filteredSingers = []
                         self.singersGridCollectionView.reloadData()
-
-                    }
+                  }
                 }
-            
-                
-              
+            case .failure(let error):
+                // otherwise, print an error to the console
+                print(error)
             }
-            
-            
-        } catch {
-            print("error:",error)
         }
+        
     }
     
     
@@ -230,17 +212,20 @@ class FavSingersViewController: UIViewController,FavArtDelegate {
     
     func fetchArtistsGivenText(text: String) {
        
-      
-        NetworkManager.search(searchingString: text, token: token) { artist in
-        
-            DispatchQueue.main.async {
-                if let artist = artist?.artists?.items {
-                    self.filteredSingers = artist
-                    self.singersGridCollectionView.reloadData()
+              
+        artistController.searchby(searchingString: text) { result in
+            switch result {
+            case .success(let items):
+                DispatchQueue.main.async {
+                    if let artist = items?.artists?.items {
+                        self.filteredSingers = artist
+                        self.singersGridCollectionView.reloadData()
+                  }
                 }
+            case .failure(let error):
+                    
+                print(error)
             }
-            
-        
         }
         
         
