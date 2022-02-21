@@ -28,7 +28,12 @@ struct Image: Codable {
 }
 
 // MARK: - Artist
-struct Artist: Codable {
+struct Artist: Codable, Equatable {
+    
+    static func == (lhs: Artist, rhs: Artist) -> Bool {
+        return (lhs.id == rhs.id)
+    }
+    
     let genres: [String]
     let href: String?
     let id: String

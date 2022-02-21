@@ -7,36 +7,30 @@
 
 import UIKit
 
-// the
-class Singer {
-    var singer: String
-    var imageURL: String
-    init(singer: String, imageURL: String) {
-        self.singer = singer
-        self.imageURL = imageURL
-    }
-}
 
 
 class FavSingersViewController: UIViewController,FavArtDelegate {
     
-    let token = "BQA5tLMdqFAdFlaXsbYP-y4Hp3ShTvC0VzO5nUysgmGb5twrwzozZumXruSVmLrQmEj_zuWHDGTuSTK1f8Q"
+
     
     private var singersGridCollectionView: UICollectionView! // the collection that displays people
     private var pickedArtistsCollectionView: UICollectionView! // the collection that includes the artists that have been picked
     private var favoriteGenresLbl: UILabel = UILabel() // the filter label that describes the collection
     
+    
+    // MARK: - properties
     var searching = false // this tells us if the search bar is being used
-    var  arti: [Artist] = []
     
     // the artists the user has chosen
-    var values = [Artist]()
+    // this is initialized whenever the user clicks on a singersGridCollectionView
+    var currentFavoriteArtists = [Artist]()
 
     // when searching for an artist this is shown
     var filteredSingers = [Artist]()
     
+    // the fav marets
+    private var people: [Artist] = [] // people sorted by filters
     
-    // data
     fileprivate let emailTextField: UITextField = {
         let tf = CustomTextfield(padding: 16, height: 50)
         tf.placeholder = "enter name"
@@ -47,22 +41,29 @@ class FavSingersViewController: UIViewController,FavArtDelegate {
     
     
     
-    private var people: [Artist] = [] // people sorted by filters
+   
     
     // Constants for the filter collection view
     private let peopleCellReuseIdentifier = "peopleCellReuseIdentifier"
     private let pickedArtistsReuseIdentifier = "colorCellReuseIdentifier"
 
+    private let artistController = SpotifyArtistController()
 
+    
+    
     fileprivate let gestureView = UIView()
 
+    let favArtists = ["790FomKkXshlbRYZFtlgla","4obzFoKoKRHIphyHzJ35G3,0XwVARXT135rw8lyw1EeWP,1uNFoZAHBGtllmzznpCI3s",
+                      "6qqNVTkY8uBg9cP3Jd7DAH","2C6i0I5RiGzDKN9IAF8reh", "60d24wfXkVzDSfLS6hyCjZ", "76YIoWHp3Ri3q1ocOPtFzp", "1vCWHaC5f2uS3yhpwWbIA6", "5K4W6rqBFWDnAN6FQUkS6x"
+    
+    ]
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
         // Do any additional setup after loading the view.
 
-        
         
         navigationItem.hidesBackButton = true
 
@@ -74,67 +75,53 @@ class FavSingersViewController: UIViewController,FavArtDelegate {
         
         setUpLayout()
        
+        // this fetches the artists we start off with
+        fetchHomeArtists()
+       
+    }
+    
+
+    // this fetches all of the artists
+    fileprivate func fetchHomeArtists() {
         
-        let favArtists = ["790FomKkXshlbRYZFtlgla","4obzFoKoKRHIphyHzJ35G3,0XwVARXT135rw8lyw1EeWP,1uNFoZAHBGtllmzznpCI3s",
-                          "6qqNVTkY8uBg9cP3Jd7DAH","2C6i0I5RiGzDKN9IAF8reh", "60d24wfXkVzDSfLS6hyCjZ", "76YIoWHp3Ri3q1ocOPtFzp", "1vCWHaC5f2uS3yhpwWbIA6", "5K4W6rqBFWDnAN6FQUkS6x"
-        
-        ]
-        
-        // fetches all of the users
-        Task {
-            do {
-                // fetch user data
-                NetworkManager.getArtists(with: favArtists, and: token) { artist in
-                 
-                    DispatchQueue.main.async {
-                        if let artist = artist {
-                            self.people = artist.artists
-                            self.singersGridCollectionView.reloadData()
-                            self.filteredSingers = []
-                      }
-                    }
+        artistController.getArtists(with: favArtists) { result in
+            switch result {
+            case .success(let items):
+                DispatchQueue.main.async {
+                    if let artist = items {
+                        self.people = artist.artists
+                        self.singersGridCollectionView.reloadData()
+                        self.filteredSingers = []
+                  }
                 }
-                // TODO:
-            } catch {
-                print("error")
+            case .failure(let error):
+                // otherwise, print an error to the console
                 print(error)
             }
         }
-        
-        
-      
-        
-        
-        
     }
     
     
 
+    
     func fetchRelatedArtists(artistId: String) {
-        // let id
         
-        
-        do {
-            NetworkManager.getRelatedArtist(token: token, artistId: artistId) { artist in
-                
-               
+        artistController.getRelatedArtistss(artistId: artistId) { result in
+            switch result {
+            case .success(let items):
                 DispatchQueue.main.async {
-                    if let artist = artist {
+                    if let artist = items {
                         self.people = artist.artists
                         self.filteredSingers = []
                         self.singersGridCollectionView.reloadData()
-
-                    }
+                  }
                 }
-            
-                
-              
+            case .failure(let error):
+                // otherwise, print an error to the console
+                print(error)
             }
-            
-            
-        } catch {
-            print("error:",error)
         }
+        
     }
     
     
@@ -173,7 +160,7 @@ class FavSingersViewController: UIViewController,FavArtDelegate {
     // configures
     //
     func configure(cell: FavArtistCollectionViewCell, forItemPathAt indexpath: IndexPath) {
-        let art = values[indexpath.item]
+        let art = currentFavoriteArtists[indexpath.item]
         // sets the name of the artist
         cell.conf(str: art.name)
         
@@ -222,7 +209,7 @@ class FavSingersViewController: UIViewController,FavArtDelegate {
     
     /// deals with the next button being pressed
     @objc fileprivate func nextButtonWasPressed() {
-        if values.count == 5 {
+        if currentFavoriteArtists.count == 5 {
         }
         
     }
@@ -230,17 +217,20 @@ class FavSingersViewController: UIViewController,FavArtDelegate {
     
     func fetchArtistsGivenText(text: String) {
        
-      
-        NetworkManager.search(searchingString: text, token: token) { artist in
-        
-            DispatchQueue.main.async {
-                if let artist = artist?.artists?.items {
-                    self.filteredSingers = artist
-                    self.singersGridCollectionView.reloadData()
+              
+        artistController.searchby(searchingString: text) { result in
+            switch result {
+            case .success(let items):
+                DispatchQueue.main.async {
+                    if let artist = items?.artists?.items {
+                        self.filteredSingers = artist
+                        self.singersGridCollectionView.reloadData()
+                  }
                 }
+            case .failure(let error):
+                    
+                print(error)
             }
-            
-        
         }
         
         
@@ -357,7 +347,7 @@ class FavSingersViewController: UIViewController,FavArtDelegate {
         // TODO:
         if let indexpath = pickedArtistsCollectionView.indexPath(for: cell) {
             // delete photo from data source
-            values.remove(at: indexpath.item)
+            currentFavoriteArtists.remove(at: indexpath.item)
             
             //
             pickedArtistsCollectionView.deleteItems(at: [indexpath])
@@ -421,7 +411,7 @@ extension FavSingersViewController: UICollectionViewDataSource {
             }
             return people.count
         } else {
-            return values.count
+            return currentFavoriteArtists.count
         }
         
 
@@ -500,6 +490,7 @@ extension FavSingersViewController: UICollectionViewDelegateFlowLayout {
 
 
 // TODO: refactor
+
 extension FavSingersViewController: UICollectionViewDelegate {
     // TODO 9: provide selection functionality
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
@@ -507,27 +498,24 @@ extension FavSingersViewController: UICollectionViewDelegate {
         if collectionView == singersGridCollectionView  {
             // check if it has existed and do not add if it hasnt existed.
         
-            if values.count < 5  {
-               
+            // checks if the current favorite artists is less than five
+            if currentFavoriteArtists.count < 5  {
+                
                 if filteredSingers.isEmpty {
                     
-                    if !values.contains(where: {$0.name == people[indexPath.row].name})  {
-                        
-                        let p = people[indexPath.row]
-                        
-                        print(p.name)
-                        values.append( people[indexPath.row])
+                    if !currentFavoriteArtists.contains(where: {$0 == people[indexPath.row]})  {
+                    
+                        currentFavoriteArtists.append( people[indexPath.row])
                             
                         fetchRelatedArtists(artistId: people[indexPath.row].id)
                     }
                     
                    
                 } else {
-                    
-                    if !values.contains(where: {$0.name == filteredSingers[indexPath.row].name})  {
-                        let p = filteredSingers[indexPath.row]
-                        print(p.name)
-                        values.append(filteredSingers[indexPath.row])
+
+                    if !currentFavoriteArtists.contains(where: {$0 == filteredSingers[indexPath.row]})  {
+                        
+                        currentFavoriteArtists.append(filteredSingers[indexPath.row])
                     }
    
                 }

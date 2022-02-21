@@ -25,11 +25,11 @@ class ViewController: UIViewController {
         // Do any additional setup after loading the view.
         
         // https://open.spotify.com/artist/?si=RDBi_yHlRV-Sxym_8iZQbQ
-        NetworkManager.getArtists(with: ["0XwVARXT135rw8lyw1EeWP","4obzFoKoKRHIphyHzJ35G3, "], and: token) { artist in
-            if let artist = artist {
-                self.arti = artist.artists
-            }
-        }
+//        NetworkManager.getArtists(with: ["0XwVARXT135rw8lyw1EeWP","4obzFoKoKRHIphyHzJ35G3, "], and: token) { artist in
+//            if let artist = artist {
+//                self.arti = artist.artists
+//            }
+//        }
         
     }
     // https://open.spotify.com/artist/?si=SMvuvydsTtqFzNoRIFX1LA
